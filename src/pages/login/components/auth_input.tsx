@@ -24,6 +24,7 @@ export const AuthInput: React.FC<InputProps> = ({
         )}
         {props?.type === 'password' && showPasswordHandler && (
           <button
+            type="button"
             className="absolute right-3.5 top-1/2 cursor-pointer -translate-y-1/2 text-gray-400"
             onClick={() => showPasswordHandler(!showPassword)}
           >

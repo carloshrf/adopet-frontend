@@ -3,7 +3,11 @@ import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import { AuthInput } from './auth_input';
 import { AuthButton } from './auth_button';
 
-export const AuthCard: React.FC = () => {
+interface AuthCardProps {
+  handleLogin(e: React.SubmitEvent): void;
+}
+
+export const AuthCard: React.FC<AuthCardProps> = ({ handleLogin }) => {
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [showLoginPw, setShowLoginPw] = useState<boolean>(false);
   const [showRegisterPw, setShowRegisterPw] = useState<boolean>(false);
@@ -40,7 +44,7 @@ export const AuthCard: React.FC = () => {
 
         <div className="p-7">
           {tab === 'login' ? (
-            <form>
+            <form onSubmit={handleLogin}>
               <div className="mb-4">
                 <label className="block text-sm text-gray-600 mb-1.5">
                   Email
@@ -62,6 +66,7 @@ export const AuthCard: React.FC = () => {
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <button
+                    type="button"
                     className="absolute right-3.5 top-1/2 cursor-pointer -translate-y-1/2 text-gray-400"
                     onClick={() => setShowLoginPw(!showLoginPw)}
                   >
@@ -88,7 +93,7 @@ export const AuthCard: React.FC = () => {
               <div className="">
                 <AuthInput
                   label="Nome completo"
-                  name='name'
+                  name="name"
                   icon={User}
                   placeholder="João da Silva"
                 />
