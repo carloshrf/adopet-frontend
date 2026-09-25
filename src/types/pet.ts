@@ -38,3 +38,14 @@ export interface Pet {
   createdAt: string;
   updatedAt: string;
 }
+
+export const SPECIES_EMOJI: Record<string, string> = {
+  Cachorro: '🐕',
+  Gato: '🐈',
+  Pássaro: '🐦',
+  Coelho: '🐇',
+  Peixe: '🐠',
+  Hamster: '🐹',
+  Tartaruga: '🐢',
+  Outro: '🐾',
+};

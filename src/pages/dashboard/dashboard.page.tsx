@@ -10,6 +10,7 @@ import {
 import { useState } from 'react';
 import type { Pet } from '../../types/pet';
 import { PetList } from './components/pet-list';
+import { INITIAL_PETS, INITIAL_USERS } from '../../temp-mocks';
 
 export type Section = 'pets' | 'add-pet' | 'edit-pet' | 'users';
 
@@ -192,7 +193,19 @@ export const DashboardPage: React.FC = () => {
         </header>
 
         <div className="flex-1 overflow-y-auto">
-          {section === 'pets' && <PetList />}
+          {section === 'pets' && (
+            <PetList
+              pets={INITIAL_PETS}
+              users={INITIAL_USERS}
+              currentUser={INITIAL_USERS[0]}
+              onEdit={() => {}}
+              onDelete={() => {}}
+              onAdd={() => {
+                setEditingPet(null);
+                setSection('add-pet');
+              }}
+            />
+          )}
         </div>
       </main>
     </div>
