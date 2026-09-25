@@ -8,6 +8,8 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import type { Pet } from '../../types/pet';
+import { PetList } from './components/pet-list';
 
 export type Section = 'pets' | 'add-pet' | 'edit-pet' | 'users';
 
@@ -16,9 +18,24 @@ export type Section = 'pets' | 'add-pet' | 'edit-pet' | 'users';
 export const DashboardPage: React.FC = () => {
   const [sideBarOpen, setSideBarOpen] = useState<boolean>(false);
   const [section, setSection] = useState<Section>('pets');
-  const [editingPet, setEditingPet] = useState<boolean>(false);
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
 
-  // const visiblePets =
+  const sectionTitles: Record<Section, { title: string; subtitle: string }> = {
+    pets: { title: 'Meus Pets', subtitle: `${10} pet${'s'} cadastrado${'s'}` },
+    'add-pet': {
+      title: 'Cadastrar Pet',
+      subtitle: 'Preencha as informações do seu pet',
+    },
+    'edit-pet': {
+      title: editingPet ? `Editando: ${editingPet.name}` : 'Editar Pet',
+      subtitle: 'Atualize as informações do pet',
+    },
+    users: {
+      title: `${10} usuário${'s'} no sistema`,
+      subtitle: `${10} usuário${'s'} no sistema`,
+    },
+  };
+
   const navItems = [
     {
       id: 'pets' as Section,
@@ -103,7 +120,7 @@ export const DashboardPage: React.FC = () => {
           <div className="pt-3">
             <button
               onClick={() => {
-                setEditingPet(false);
+                setEditingPet(null);
                 setSection('edit-pet');
                 setSideBarOpen(false);
               }}
@@ -144,12 +161,39 @@ export const DashboardPage: React.FC = () => {
         </div>
       </aside>
 
-      <main className="">
-        <header>
-          <button onClick={() => setSideBarOpen(true)}>
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <header className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-4 flex-shrink-0">
+          <button
+            className="lg:hidden text-gray-400 hover:text-gray-600 p-1"
+            onClick={() => setSideBarOpen(true)}
+          >
             <Menu className="w-5 h-5" />
           </button>
+
+          <div className="flex-1 min-w-0">
+            <h1 className="text-gray-900 landing-tight">
+              {sectionTitles[section].title}
+            </h1>
+            <p className="text-sm text-gray-400">
+              {sectionTitles[section].subtitle}
+            </p>
+          </div>
+
+          {(section === 'add-pet' || section === 'edit-pet') && (
+            <button
+              onClick={() => {
+                /** cancelForm */
+              }}
+              className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              ← Voltar
+            </button>
+          )}
         </header>
+
+        <div className="flex-1 overflow-y-auto">
+          {section === 'pets' && <PetList />}
+        </div>
       </main>
     </div>
   );
