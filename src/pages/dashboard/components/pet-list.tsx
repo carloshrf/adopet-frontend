@@ -1,4 +1,4 @@
-import { Plus, Search } from 'lucide-react';
+import { Edit2, Plus, Search } from 'lucide-react';
 import { SPECIES_EMOJI, type Pet } from '../../../types/pet';
 import type { User } from '../../../types/user';
 import { useState } from 'react';
@@ -16,19 +16,27 @@ function getSpeciesEmoji(species: string) {
   return SPECIES_EMOJI[species] ?? '🐾';
 }
 
-export const PetList: React.FC<PetListProps> = ({
-  pets,
-  currentUser,
-  onAdd,
-  onDelete,
-  onEdit,
-  users,
-}) => {
-  const [search, setSearch] = useState('');
-  const [filterSpecies, setFilterSpecies] = useState('all');
+function calculateAge(birthDate: string): string | null {
+  if (!birthDate) return null;
+  try {
+    const birth = new Date(birthDate);
+    const now = new Date();
+    const diffMs = now.getTime() - birth.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 30) return `${diffDays} dias`;
+    const months = Math.floor(diffDays / 30);
+    if (months < 12) return `${months} ${months === 1 ? 'mês' : 'meses'}`;
+    const years = Math.floor(months / 12);
+    const remMonths = months % 12;
+    if (remMonths === 0) return `${years} ${years === 1 ? 'ano' : 'anos'}`;
+    return `${years}a ${remMonths}m`;
+  } catch {
+    return null;
+  }
+}
 
-  const allSpecies = [...new Set(pets.map((p) => p.species))];
-  const stats = [
+function getStats(pets: Pet[]) {
+  return [
     {
       label: 'Total de Pets',
       value: pets.length,
@@ -55,6 +63,33 @@ export const PetList: React.FC<PetListProps> = ({
       color: 'bg-orange-50 border-orange-100',
     },
   ];
+}
+
+export const PetList: React.FC<PetListProps> = ({
+  pets,
+  currentUser,
+  onAdd,
+  onDelete,
+  onEdit,
+  users,
+}) => {
+  const [search, setSearch] = useState('');
+  const [detailPet, setDetailPet] = useState<Pet | null>(null);
+  const [filterSpecies, setFilterSpecies] = useState('all');
+
+  const allSpecies = [...new Set(pets.map((p) => p.species))];
+
+  const stats = getStats(pets);
+
+  const filtered = pets.filter((pet) => {
+    const q = search.toLowerCase();
+    const matchesSearch =
+      pet.name.toLowerCase().includes(q) ||
+      pet.species.toLowerCase().includes(q);
+    const matchesFilter =
+      filterSpecies === 'all' || pet.species === filterSpecies;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     // stats
@@ -68,7 +103,9 @@ export const PetList: React.FC<PetListProps> = ({
             >
               <span className="text-2xl">{stat.icon}</span>
               <div>
-                <p className="text-xl font-semibold text-gray-800 leading-none"></p>
+                <p className="text-xl font-semibold text-gray-800 leading-none">
+                  {stat.value}
+                </p>
                 <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
               </div>
             </div>
@@ -96,7 +133,7 @@ export const PetList: React.FC<PetListProps> = ({
           >
             <option value="all">Todas espécies</option>
             {allSpecies.map((s) => (
-              <option key="s" value="s">
+              <option key={s} value={s}>
                 {getSpeciesEmoji(s)} {s}
               </option>
             ))}
@@ -110,6 +147,74 @@ export const PetList: React.FC<PetListProps> = ({
           <Plus className="w-4 h-4" /> Novo Pet
         </button>
       </div>
+
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="text-6xl mb-4">🐾</div>
+          <h3 className="text-gray-600 mb-1">
+            {pets.length === 0
+              ? 'Nenhum pet cadastrado ainda'
+              : 'Nenhum pet encontrado'}
+          </h3>
+          <p className="text-sm text-gray-400 mb-5">
+            {pets.length === 0
+              ? 'Comece cadastrando seu primeiro pet'
+              : 'Tente ajustar os filtros de busca'}
+          </p>
+          {pets.length === 0 && (
+            <button
+              onClick={onAdd}
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-colors shadow-md shadow-emerald-200"
+            >
+              <Plus className="w-4 h-4" /> Cadastrar meu primeiro pet
+            </button>
+          )}
+        </div>
+      ) : (
+        // pet-card
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filtered.map((pet) => {
+            const age = calculateAge(pet.birthDate);
+            const activeConditions = pet.diseases.filter(
+              (d) => d.status !== 'resolved',
+            );
+            return (
+              <div
+                key={pet.id}
+                onClick={() => setDetailPet(pet)}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group cursor-pointer"
+              >
+                <div className="relative h-44 overflow-hidden">
+                  {pet.photos.length > 0 ? (
+                    <img
+                      src={pet.photos[0]}
+                      alt={pet.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-content">
+                      <span className="text-5xl">
+                        {getSpeciesEmoji(pet.species)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(pet);
+                      }}
+                      className="w-8 h-8 bg-white/95 hover:bg-white rounded-lg flex items-center justify-center shadow-md transition-colors"
+                    >
+                      <Edit2 className='w-3.5 h-3.5 text-gray-600' />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
